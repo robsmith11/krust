@@ -56,7 +56,7 @@ impl KOwned {
             let k = ktn(4, bytes.len() as i64);
             let sx = (*k).fetch_slice::<u8>();
             assert_eq!(bytes.len(), sx.len());
-            slice::bytes::copy_memory(bytes, sx);
+            sx.clone_from_slice(bytes);
             KOwned(&*k)
         }
     }
