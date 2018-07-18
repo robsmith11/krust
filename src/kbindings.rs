@@ -5,6 +5,8 @@ use std::slice;
 use std::ptr;
 use std::fmt;
 use std::ffi;
+use std::collections::HashMap;
+use std::sync::Mutex;
 
 pub type S = *const libc::c_char;
 pub type C = libc::c_char;
@@ -15,6 +17,13 @@ pub type J = libc::c_longlong;
 pub type E = libc::c_float;
 pub type F = libc::c_double;
 pub type V = libc::c_void;
+
+lazy_static! {
+    static ref ERR_STRS: Mutex<HashMap<String, ffi::CString>> = {
+        let m = HashMap::with_capacity(64);
+        Mutex::new(m)
+    };
+}
 
 #[repr(C)]
 pub struct K {
@@ -250,8 +259,13 @@ pub fn deserial(k: &K) -> &K  {
 }
 
 pub fn kerror(err: &str) -> &'static K {
+    let mut map = ERR_STRS.lock().unwrap();
+
+    let msg = map.entry(err.to_string()).or_insert(ffi::CString::new(err).unwrap());
+    let ptr = msg.as_ptr();
+
     // AFAICT, just returns a null pointer
-    unsafe { &*krr(ffi::CString::new(err).unwrap().as_ptr()) }
+    unsafe { &*krr(ptr) }
 }
 
 pub fn kbool(b: bool) -> &'static K {
