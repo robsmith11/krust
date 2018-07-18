@@ -106,6 +106,12 @@ impl<'a, T: 'a + fmt::Debug> KData<'a, T>{
     unsafe fn atom(k: &'a K) -> KData<'a, T> {
         KData::Atom(k.cast())
     }
+
+    #[inline]
+    unsafe fn guid_atom(k: &'a K) -> KData<'a, T> {
+        KData::Atom(k.cast_with_ptr_offset()) // while this is an atom, it is packed into a list of 1
+    }
+
     #[inline]
     unsafe fn list(k: &'a K) -> KData<'a, T> {
         KData::List(k.fetch_slice())
@@ -147,7 +153,7 @@ impl<'a> KVal<'a> {
             let k = &*k;
             match k.t {
                 -1 => KVal::Bool(KData::atom(k)),
-                -2 => KVal::Guid(KData::atom(k)),
+                -2 => KVal::Guid(KData::guid_atom(k)), 
                 -4 => KVal::Byte(KData::atom(k)),
                 -5 => KVal::Short(KData::atom(k)),
                 -6 => KVal::Int(KData::atom(k)),
@@ -295,7 +301,7 @@ pub fn kvoid() -> *const K {
 fn klist<T>(ktype: i32, vals: &[T]) -> &'static K {
     unsafe {
         let k = ktn(ktype, vals.len() as i64);
-        let mut sx = (*k).fetch_slice::<T>();
+        let sx = (*k).fetch_slice::<T>();
         assert_eq!(vals.len(), sx.len());
         std::ptr::copy_nonoverlapping(vals.as_ptr(), sx.as_mut_ptr(), vals.len());
         &*k
