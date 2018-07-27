@@ -27,9 +27,9 @@ lazy_static! {
 
 #[repr(C)]
 pub struct K {
-    pub m: libc::c_char,
-    pub a: libc::c_char,
-    pub t: libc::c_char,
+    pub m: i8,
+    pub a: i8,
+    pub t: i8,
     pub u: C,
     pub r: I,
     pub union: [u8; 16],
@@ -141,7 +141,7 @@ pub enum KVal<'a> {
     Float(KData<'a, f64>),
     Char(&'a i8),
     String(&'a str),
-    Symbol(KData<'a, *const i8>),
+    Symbol(KData<'a, S>),
     Table(Box<KVal<'a>>),
     Dict(Box<KVal<'a>>, Box<KVal<'a>>), // Keys, Values
     Timestamp(KData<'a, i64>),
@@ -234,7 +234,7 @@ impl<'a> KVal<'a> {
             KVal::Float(KData::Atom(&mut v)) => kfloat(v),
             KVal::Float(KData::List(ref vals)) => klist::<f64>(9, vals),
             //KVal::Symbol(KData::Atom(&mut v)) => ksymbol(v),
-            KVal::Symbol(KData::List(ref vals)) => klist::<*const i8>(11, vals),
+            KVal::Symbol(KData::List(ref vals)) => klist::<S>(11, vals),
             KVal::Dict(box ref k, box ref v) => kdict(k, v),
             _ => kerror("NYI")
         }
@@ -242,7 +242,7 @@ impl<'a> KVal<'a> {
 
 }
 
-pub fn intern_strings(strs: Vec<String>) -> Vec<*const i8> {
+pub fn intern_strings(strs: Vec<String>) -> Vec<S> {
     unsafe {
         strs.into_iter()
             .map(|s| ss(ffi::CString::new(s).unwrap().as_ptr()))
