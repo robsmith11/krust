@@ -5,6 +5,8 @@ use std::slice;
 use std::ptr;
 use std::fmt;
 use std::ffi;
+use std::collections::HashMap;
+use std::sync::Mutex;
 
 pub type S = *const libc::c_char;
 pub type C = libc::c_char;
@@ -15,6 +17,13 @@ pub type J = libc::c_longlong;
 pub type E = libc::c_float;
 pub type F = libc::c_double;
 pub type V = libc::c_void;
+
+lazy_static! {
+    static ref ERR_STRS: Mutex<HashMap<String, ffi::CString>> = {
+        let m = HashMap::with_capacity(64);
+        Mutex::new(m)
+    };
+}
 
 #[repr(C)]
 pub struct K {
@@ -106,6 +115,12 @@ impl<'a, T: 'a + fmt::Debug> KData<'a, T>{
     unsafe fn atom(k: &'a K) -> KData<'a, T> {
         KData::Atom(k.cast())
     }
+
+    #[inline]
+    unsafe fn guid_atom(k: &'a K) -> KData<'a, T> {
+        KData::Atom(k.cast_with_ptr_offset()) // while this is an atom, it is packed into a list of 1
+    }
+
     #[inline]
     unsafe fn list(k: &'a K) -> KData<'a, T> {
         KData::List(k.fetch_slice())
@@ -147,7 +162,7 @@ impl<'a> KVal<'a> {
             let k = &*k;
             match k.t {
                 -1 => KVal::Bool(KData::atom(k)),
-                -2 => KVal::Guid(KData::atom(k)),
+                -2 => KVal::Guid(KData::guid_atom(k)), 
                 -4 => KVal::Byte(KData::atom(k)),
                 -5 => KVal::Short(KData::atom(k)),
                 -6 => KVal::Int(KData::atom(k)),
@@ -244,8 +259,13 @@ pub fn deserial(k: &K) -> &K  {
 }
 
 pub fn kerror(err: &str) -> &'static K {
+    let mut map = ERR_STRS.lock().unwrap();
+
+    let msg = map.entry(err.to_string()).or_insert(ffi::CString::new(err).unwrap());
+    let ptr = msg.as_ptr();
+
     // AFAICT, just returns a null pointer
-    unsafe { &*krr(ffi::CString::new(err).unwrap().as_ptr()) }
+    unsafe { &*krr(ptr) }
 }
 
 pub fn kbool(b: bool) -> &'static K {
@@ -295,7 +315,7 @@ pub fn kvoid() -> *const K {
 fn klist<T>(ktype: i32, vals: &[T]) -> &'static K {
     unsafe {
         let k = ktn(ktype, vals.len() as i64);
-        let mut sx = (*k).fetch_slice::<T>();
+        let sx = (*k).fetch_slice::<T>();
         assert_eq!(vals.len(), sx.len());
         std::ptr::copy_nonoverlapping(vals.as_ptr(), sx.as_mut_ptr(), vals.len());
         &*k

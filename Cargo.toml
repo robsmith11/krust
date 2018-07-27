@@ -10,6 +10,7 @@ libc = "*"
 num = "*"
 bitflags = "*"
 nix = "*"
+lazy_static = "*"
 
 [lib]
 name = "krust"
