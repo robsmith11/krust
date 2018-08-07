@@ -1,9 +1,12 @@
+cargo-features = ["edition"]
+
 [package]
 name = "krust"
 version = "0.1.0"
 authors = ["Alex Whitney <awhitney@tylercapital.co.uk>"]
 links = "kdb"
 build = "build.rs"
+edition = "2018"
 
 [dependencies]
 libc = "*"
@@ -11,6 +14,7 @@ num = "*"
 bitflags = "*"
 nix = "*"
 lazy_static = "*"
+k_derive = { path = "./k_derive" }
 
 [lib]
 name = "krust"

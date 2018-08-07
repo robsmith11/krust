@@ -1,0 +1,14 @@
+cargo-features = ["edition"]
+
+[package]
+name = "k_derive"
+version = "0.1.0"
+authors = ["Rob Smith <robsmith11@yandex.com>"]
+edition = "2018"
+
+[dependencies]
+quote = "0.6"
+syn = "0.14"
+
+[lib]
+proc-macro = true

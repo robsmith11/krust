@@ -1,3 +1,4 @@
+use lazy_static::lazy_static;
 use libc;
 use std;
 use std::mem::zeroed;
@@ -341,6 +342,48 @@ fn kmixed(vals: &[KVal]) -> &'static K {
         sx[ix] = val.to_k()
     }
     k
+}
+
+pub trait ToKList {
+    fn to_klist(_:&mut Vec<Self>) -> KVal
+        where Self:Sized;
+}
+
+impl ToKList for bool {
+    fn to_klist(x:&mut Vec<Self>) -> KVal {
+        KVal::Bool(KData::List(x))
+    }
+}
+
+impl ToKList for i32 {
+    fn to_klist(x:&mut Vec<Self>) -> KVal {
+        KVal::Int(KData::List(x))
+    }
+}
+
+impl ToKList for i64 {
+    fn to_klist(x:&mut Vec<Self>) -> KVal {
+        KVal::Long(KData::List(x))
+    }
+}
+
+impl ToKList for f32 {
+    fn to_klist(x:&mut Vec<Self>) -> KVal {
+        KVal::Real(KData::List(x))
+    }
+}
+
+impl ToKList for f64 {
+    fn to_klist(x:&mut Vec<Self>) -> KVal {
+        KVal::Float(KData::List(x))
+    }
+}
+
+pub fn vecs_to_table(c:Vec<&str>, v:Vec<KVal>) -> *const K {
+    let mut s = intern_strings(c.iter().map(|s| s.to_string()).collect());
+    let k = KVal::Symbol(KData::List(&mut s));
+    let v = KVal::Mixed(v);
+    ktable(KVal::Dict(Box::new(k), Box::new(v)))
 }
 
 /* TODO

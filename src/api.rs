@@ -4,8 +4,8 @@ use std::ffi;
 use std::io;
 use std::sync::mpsc;
 use std::convert;
-use kbindings;
-use kbindings::{K, KVal, KData, kvoid, KOwned, deserial};
+use crate::kbindings;
+use crate::kbindings::{K, KVal, KData, kvoid, KOwned, deserial};
 
 #[derive(Debug)]
 pub struct KError {
