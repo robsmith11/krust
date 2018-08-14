@@ -379,6 +379,12 @@ impl ToKList for f64 {
     }
 }
 
+impl<T:ToKList> ToKList for Vec<T> {
+    fn to_klist(x:&mut Vec<Self>) -> KVal {
+        KVal::Mixed(x.iter_mut().map(ToKList::to_klist).collect())
+    }
+}
+
 pub fn vecs_to_table(c:Vec<&str>, v:Vec<KVal>) -> *const K {
     let mut s = intern_strings(c.iter().map(|s| s.to_string()).collect());
     let k = KVal::Symbol(KData::List(&mut s));

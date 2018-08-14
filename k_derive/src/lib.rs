@@ -18,7 +18,7 @@ pub fn ktable_derive(input:TokenStream) -> TokenStream {
             let expanded = quote! {
                 pub fn #fname(x:&[#name]) -> *const K {
                     vecs_to_table(vec![ #( #snf ,)* ],
-                                  vec![ #(ToKList::to_klist(&mut x.iter().map(|y| y.#nf).collect()) ,)* ])
+                                  vec![ #(ToKList::to_klist(&mut x.iter().map(|y| y.#nf.clone()).collect()) ,)* ])
                 }
             };
 
