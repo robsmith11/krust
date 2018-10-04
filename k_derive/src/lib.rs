@@ -1,4 +1,7 @@
-use proc_macro::TokenStream;
+// Workaround for https://github.com/rust-lang/rust/issues/54418
+extern crate proc_macro;
+    
+use crate::proc_macro::TokenStream;
 use quote::*;
 
 /// Generates a function `foo_to_ktable for the struct `Foo`

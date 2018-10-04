@@ -13,7 +13,7 @@ libc = "*"
 num = "*"
 bitflags = "*"
 nix = "*"
-lazy_static = "*"
+lazy_static = "^1.1.0"
 k_derive = { path = "./k_derive" }
 
 [lib]
