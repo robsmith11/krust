@@ -379,6 +379,12 @@ impl ToKList for f64 {
     }
 }
 
+impl ToKList for u8 {
+    fn to_klist(x:&mut Vec<Self>) -> KVal {
+        KVal::Byte(KData::List(x))
+    }
+}
+
 impl<T:ToKList> ToKList for Vec<T> {
     fn to_klist(x:&mut Vec<Self>) -> KVal {
         KVal::Mixed(x.iter_mut().map(ToKList::to_klist).collect())
